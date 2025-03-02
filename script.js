@@ -270,29 +270,64 @@ document.addEventListener('DOMContentLoaded', function() {
             icon.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                const quote = currentQuote;
-                let shareUrl = '';
+                // Generate a quote card first
+                openCardModal();
                 
-                // Determine which platform was clicked
-                if (this.querySelector('.fa-twitter')) {
-                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote)}&hashtags=inspiration,quotes`;
-                } else if (this.querySelector('.fa-facebook-f')) {
-                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(quote)}`;
-                } else if (this.querySelector('.fa-instagram')) {
-                    // Instagram doesn't have a direct sharing API, so we'll just copy to clipboard
-                    navigator.clipboard.writeText(quote).then(() => {
-                        alert('Quote copied to clipboard! You can now paste it into Instagram.');
-                    }).catch(err => {
-                        console.error('Could not copy text: ', err);
-                    });
-                    return;
-                }
+                // Store which platform was clicked
+                const platform = this.querySelector('.fa-twitter') ? 'twitter' : 
+                                this.querySelector('.fa-facebook-f') ? 'facebook' : 
+                                this.querySelector('.fa-instagram') ? 'instagram' : null;
                 
-                // Open share dialog
-                if (shareUrl) {
-                    window.open(shareUrl, '_blank', 'width=600,height=400');
-                }
+                // Add a share button click handler specifically for this sharing action
+                const shareHandler = function() {
+                    const quote = currentQuote;
+                    
+                    if (platform === 'twitter') {
+                        shareToTwitter(quote);
+                    } else if (platform === 'facebook') {
+                        shareToFacebook(quote);
+                    } else if (platform === 'instagram') {
+                        shareToInstagram(quote);
+                    }
+                    
+                    // Remove this specific handler after use
+                    shareBtn.removeEventListener('click', shareHandler);
+                };
+                
+                // Add the temporary handler
+                shareBtn.addEventListener('click', shareHandler);
             });
+        });
+    }
+    
+    // Function to share to Twitter
+    function shareToTwitter(quote) {
+        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote)}&hashtags=inspiration,quotes`;
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+    
+    // Function to share to Facebook
+    function shareToFacebook(quote) {
+        const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(quote)}`;
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+    
+    // Function to share to Instagram
+    function shareToInstagram(quote) {
+        // Since Instagram doesn't have a direct sharing API, we'll download the image
+        // and prompt the user to share it manually
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'inspire-me-quote.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            alert('Image downloaded! You can now share it manually on Instagram.');
         });
     }
     
@@ -621,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 fallbackShare(blob);
             }
-        });
+        }, 'image/png', 1.0);
     }
     
     // Fallback sharing method
@@ -649,7 +684,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to open modal and generate quote card
     function openCardModal() {
         modal.classList.add('show');
-        generateQuoteCard();
+        
+        // Ensure canvas is properly sized
+        // For high-resolution displays
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        
+        // Set canvas dimensions for proper rendering
+        canvas.width = rect.width * dpr;
+        canvas.height = canvas.width; // Keep it square
+        
+        // Scale the context
+        ctx.scale(dpr, dpr);
+        
+        // Generate the quote card
+        setTimeout(() => {
+            generateQuoteCard();
+        }, 100);
     }
     
     // Function to close modal
