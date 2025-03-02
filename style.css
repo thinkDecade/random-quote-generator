@@ -24,12 +24,23 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('https://source.unsplash.com/random/1920x1080/?nature,inspiration');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
     z-index: -2;
-    transition: opacity 1s ease;
+    transition: all 1s ease;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .overlay {
@@ -38,8 +49,43 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 100%);
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.4) 100%);
     z-index: -1;
+}
+
+/* Floating particles */
+.background-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 1%),
+        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 1%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 1%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 1%),
+        radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 1%),
+        radial-gradient(circle at 65% 35%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 1%);
+    background-size: 200% 200%, 150% 150%, 300% 300%, 250% 250%, 400% 400%, 300% 300%;
+    animation: particles 20s ease-in-out infinite;
+    opacity: 0.7;
+}
+
+@keyframes particles {
+    0%, 100% {
+        background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+    }
+    25% {
+        background-position: 100% 100%, 50% 50%, 25% 75%, 75% 25%, 25% 25%, 75% 75%;
+    }
+    50% {
+        background-position: 50% 50%, 100% 100%, 50% 50%, 50% 50%, 100% 100%, 50% 50%;
+    }
+    75% {
+        background-position: 25% 75%, 75% 25%, 75% 75%, 25% 25%, 75% 75%, 25% 25%;
+    }
 }
 
 /* Container styling */
@@ -95,21 +141,41 @@ main {
 
 /* Quote box styling */
 .quote-box {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
     padding: 3rem;
     border-radius: 15px;
     margin-bottom: 2.5rem;
     width: 100%;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 
+                inset 0 0 15px rgba(255, 255, 255, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.quote-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
 }
 
 .quote-box:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3), 
+                inset 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.quote-box:hover::before {
+    opacity: 1;
 }
 
 .quote-icon {
@@ -159,12 +225,29 @@ main {
     justify-content: center;
     box-shadow: 0 4px 15px rgba(100, 255, 218, 0.3);
     outline: none;
+    position: relative;
+    overflow: hidden;
+}
+
+#generate::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: 0.5s;
 }
 
 #generate:hover {
     transform: translateY(-3px);
     box-shadow: 0 7px 20px rgba(100, 255, 218, 0.4);
     background: linear-gradient(135deg, #64ffda 0%, #3a8a7a 100%);
+}
+
+#generate:hover::before {
+    left: 100%;
 }
 
 #generate:active {
@@ -206,16 +289,34 @@ footer {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.15);
     color: #fff;
     transition: all 0.3s ease;
     text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.social-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .social-icon:hover {
     background-color: #64ffda;
     color: #1a1a2e;
     transform: translateY(-3px);
+}
+
+.social-icon:hover::before {
+    opacity: 1;
 }
 
 /* Animations */

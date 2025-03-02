@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store DOM elements
     const quoteElement = document.getElementById('quote');
     const generateButton = document.getElementById('generate');
-    const backgroundContainer = document.querySelector('.background-container');
     const socialIcons = document.querySelectorAll('.social-icon');
     
     // Array of quotes
@@ -23,20 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         "Many of life's failures are people who did not realize how close they were to success when they gave up. - Thomas A. Edison",
         "The mind is everything. What you think you become. - Buddha",
         "The journey of a thousand miles begins with one step. - Lao Tzu"
-    ];
-    
-    // Array of background categories for Unsplash
-    const backgroundCategories = [
-        'nature,inspiration',
-        'mountains,sunset',
-        'ocean,calm',
-        'forest,light',
-        'sky,clouds',
-        'stars,night',
-        'landscape,peaceful',
-        'sunrise,hope',
-        'waterfall,serenity',
-        'autumn,reflection'
     ];
     
     // Keep track of recently used quotes to avoid repetition
@@ -64,27 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return selectedQuote;
     }
     
-    // Function to change background image
-    function changeBackground() {
-        const randomCategory = backgroundCategories[Math.floor(Math.random() * backgroundCategories.length)];
-        const newBackgroundUrl = `https://source.unsplash.com/random/1920x1080/?${randomCategory}&t=${new Date().getTime()}`;
-        
-        // Create a new image to preload
-        const img = new Image();
-        img.src = newBackgroundUrl;
-        
-        // When image is loaded, update the background
-        img.onload = function() {
-            backgroundContainer.style.opacity = 0;
-            
-            setTimeout(() => {
-                backgroundContainer.style.backgroundImage = `url('${newBackgroundUrl}')`;
-                backgroundContainer.style.opacity = 1;
-            }, 500);
-        };
-    }
-    
-    // Function to update the quote text
+    // Function to update the quote text with animation
     function updateQuote() {
         // Disable button during transition
         generateButton.disabled = true;
@@ -94,9 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update the quote element with fade effect
         quoteElement.style.opacity = 0;
-        
-        // Change background
-        changeBackground();
         
         setTimeout(() => {
             quoteElement.textContent = newQuote;
