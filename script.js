@@ -299,57 +299,123 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to share to Twitter
     function shareToTwitter(quote) {
-        canvas.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'inspire-me-quote.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-                const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out this inspiring quote!\n\n' + quote)}&hashtags=inspiration,quotes`;
+        canvas.toBlob(async function(blob) {
+            try {
+                // Create a FormData object
+                const formData = new FormData();
+                formData.append('image', blob, 'inspire-me-quote.png');
+                
+                // First try to use Web Share API if available
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([blob], 'inspire-me-quote.png', { type: 'image/png' });
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Inspirational Quote',
+                            text: quote
+                        });
+                        return;
+                    } catch (err) {
+                        console.log('Web Share API failed, falling back to traditional sharing');
+                    }
+                }
+
+                // If Web Share API is not available or fails, use traditional method
+                // Create a temporary URL for the image
+                const imageUrl = URL.createObjectURL(blob);
+                
+                // Open Twitter intent URL with the quote
+                const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote)}&hashtags=inspiration,quotes`;
                 window.open(shareUrl, '_blank', 'width=600,height=400');
-            }, 100);
+                
+                // Show instructions to the user
+                alert('To share the quote card:\n1. Save the image that was just downloaded\n2. In the Twitter window that opened, click to add an image\n3. Select the downloaded quote card image\n4. Post your tweet!');
+                
+                // Clean up the temporary URL
+                setTimeout(() => URL.revokeObjectURL(imageUrl), 100);
+            } catch (error) {
+                console.error('Error sharing to Twitter:', error);
+                alert('There was an error preparing the image for sharing. Please try again.');
+            }
         }, 'image/png', 1.0);
     }
     
     // Function to share to Facebook
     function shareToFacebook(quote) {
-        canvas.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'inspire-me-quote.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-                const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent('Check out this inspiring quote!\n\n' + quote)}`;
+        canvas.toBlob(async function(blob) {
+            try {
+                // First try to use Web Share API if available
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([blob], 'inspire-me-quote.png', { type: 'image/png' });
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Inspirational Quote',
+                            text: quote
+                        });
+                        return;
+                    } catch (err) {
+                        console.log('Web Share API failed, falling back to traditional sharing');
+                    }
+                }
+
+                // If Web Share API is not available or fails, create a temporary URL for the image
+                const imageUrl = URL.createObjectURL(blob);
+                
+                // Open Facebook share dialog
+                const shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href);
                 window.open(shareUrl, '_blank', 'width=600,height=400');
-            }, 100);
+                
+                // Show instructions to the user
+                alert('To share the quote card:\n1. Save the image that was just downloaded\n2. In the Facebook window that opened, click to create a new post\n3. Add the downloaded quote card image\n4. Share your post!');
+                
+                // Clean up the temporary URL
+                setTimeout(() => URL.revokeObjectURL(imageUrl), 100);
+            } catch (error) {
+                console.error('Error sharing to Facebook:', error);
+                alert('There was an error preparing the image for sharing. Please try again.');
+            }
         }, 'image/png', 1.0);
     }
     
     // Function to share to Instagram
     function shareToInstagram(quote) {
-        canvas.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'inspire-me-quote.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-                alert('Image downloaded! Since Instagram doesn\'t support direct sharing via web, please:\n1. Open Instagram\n2. Create a new post\n3. Select the downloaded image (inspire-me-quote.png)\n4. Add the quote as your caption');
-            }, 100);
+        canvas.toBlob(async function(blob) {
+            try {
+                // First try to use Web Share API if available
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([blob], 'inspire-me-quote.png', { type: 'image/png' });
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Inspirational Quote',
+                            text: quote
+                        });
+                        return;
+                    } catch (err) {
+                        console.log('Web Share API failed, falling back to traditional sharing');
+                    }
+                }
+
+                // If Web Share API is not available or fails, use traditional method
+                const imageUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = 'inspire-me-quote.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up the temporary URL
+                setTimeout(() => {
+                    URL.revokeObjectURL(imageUrl);
+                    // Show more detailed instructions for Instagram
+                    alert('To share on Instagram:\n1. Open Instagram on your device\n2. Create a new post\n3. Select the downloaded quote card image (inspire-me-quote.png)\n4. Add the quote as your caption\n5. Share your post!');
+                }, 100);
+            } catch (error) {
+                console.error('Error sharing to Instagram:', error);
+                alert('There was an error preparing the image for sharing. Please try again.');
+            }
         }, 'image/png', 1.0);
     }
     
