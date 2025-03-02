@@ -270,13 +270,40 @@ document.addEventListener('DOMContentLoaded', function() {
             icon.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // Generate a quote card first
-                openCardModal();
-                
                 // Store which platform was clicked
                 const platform = this.querySelector('.fa-twitter') ? 'twitter' : 
                                 this.querySelector('.fa-facebook-f') ? 'facebook' : 
                                 this.querySelector('.fa-instagram') ? 'instagram' : null;
+                
+                // Generate a quote card first
+                openCardModal();
+                
+                // Add a notification to guide the user
+                const notification = document.createElement('div');
+                notification.className = 'share-notification';
+                notification.innerHTML = `<p>Click the <strong>Share</strong> button below to share on ${platform}</p>`;
+                notification.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    z-index: 10;
+                    text-align: center;
+                    animation: fadeIn 0.3s forwards;
+                `;
+                
+                document.querySelector('.modal-content').appendChild(notification);
+                
+                // Remove notification after 5 seconds
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 5000);
                 
                 // Add a share button click handler specifically for this sharing action
                 const shareHandler = function() {
@@ -292,6 +319,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Remove this specific handler after use
                     shareBtn.removeEventListener('click', shareHandler);
+                    
+                    // Remove notification if it still exists
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
                 };
                 
                 // Add the temporary handler
@@ -302,14 +334,46 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to share to Twitter
     function shareToTwitter(quote) {
-        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote)}&hashtags=inspiration,quotes`;
-        window.open(shareUrl, '_blank', 'width=600,height=400');
+        // First download the image
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'inspire-me-quote.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            // Then open Twitter share dialog
+            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote)}&hashtags=inspiration,quotes`;
+            window.open(shareUrl, '_blank', 'width=600,height=400');
+            
+            alert('Image downloaded! You can attach it to your tweet for a more visual impact.');
+        }, 'image/png', 1.0);
     }
     
     // Function to share to Facebook
     function shareToFacebook(quote) {
-        const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(quote)}`;
-        window.open(shareUrl, '_blank', 'width=600,height=400');
+        // First download the image
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'inspire-me-quote.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            // Then open Facebook share dialog
+            const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(quote)}`;
+            window.open(shareUrl, '_blank', 'width=600,height=400');
+            
+            alert('Image downloaded! You can attach it to your Facebook post for a more visual impact.');
+        }, 'image/png', 1.0);
     }
     
     // Function to share to Instagram
@@ -368,6 +432,62 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Helper function to wrap text
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let lines = [];
+        
+        // Adjust font size based on text length to ensure it fits
+        let fontSize = 60; // Start with default font size
+        if (text.length > 100) {
+            fontSize = 50;
+        }
+        if (text.length > 150) {
+            fontSize = 40;
+        }
+        if (text.length > 200) {
+            fontSize = 35;
+        }
+        
+        // Set the adjusted font size
+        context.font = `italic ${fontSize}px Playfair Display, serif`;
+        
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = context.measureText(testLine);
+            const testWidth = metrics.width;
+            
+            if (testWidth > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        
+        lines.push(line);
+        
+        // Calculate total height of text
+        const totalHeight = lines.length * lineHeight;
+        
+        // If text is too long, reduce line height to fit
+        let adjustedLineHeight = lineHeight;
+        if (lines.length > 6) {
+            adjustedLineHeight = Math.min(lineHeight, (canvas.height * 0.6) / lines.length);
+        }
+        
+        // Calculate starting y position to center text block
+        const startY = y - (totalHeight / 2) + (adjustedLineHeight / 2);
+        
+        // Draw each line
+        for (let i = 0; i < lines.length; i++) {
+            context.fillText(lines[i], x, startY + (i * adjustedLineHeight));
+        }
+        
+        return lines;
+    }
+    
     // Gradient style card
     function drawGradientStyle(quoteText, authorText) {
         // Create gradient background
@@ -396,12 +516,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.fillText('"', canvas.width - 100, canvas.height - 100);
         
         // Draw quote text
-        ctx.font = 'italic 60px Playfair Display, serif';
+        // Font size will be adjusted in wrapText function
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Word wrap the quote text
+        // Word wrap the quote text with more space
         const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 200, 80);
         
         // Draw author text
@@ -410,7 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 100);
         }
         
         // Add logo/branding
@@ -441,12 +561,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.fillRect(0, 0, 20, canvas.height);
         
         // Draw quote text
-        ctx.font = 'italic 60px Playfair Display, serif';
+        // Font size will be adjusted in wrapText function
         ctx.fillStyle = '#333';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Word wrap the quote text
+        // Word wrap the quote text with more space
         const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 300, 80);
         
         // Draw author text
@@ -455,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillStyle = '#64ffda';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 100);
         }
         
         // Add logo/branding
@@ -499,12 +619,12 @@ document.addEventListener('DOMContentLoaded', function() {
         drawLeaf(150, canvas.height - 150, 60, 30);
         
         // Draw quote text
-        ctx.font = 'italic 60px Playfair Display, serif';
+        // Font size will be adjusted in wrapText function
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Word wrap the quote text
+        // Word wrap the quote text with more space
         const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 300, 80);
         
         // Draw author text
@@ -513,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 100);
         }
         
         // Add logo/branding
@@ -552,12 +672,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Draw quote text
-        ctx.font = 'italic 60px Playfair Display, serif';
+        // Font size will be adjusted in wrapText function
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Word wrap the quote text
+        // Word wrap the quote text with more space
         const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 300, 80);
         
         // Draw author text
@@ -566,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillStyle = '#64ffda';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 100);
         }
         
         // Add logo/branding
@@ -588,41 +708,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.bezierCurveTo(-width/3, height/2, -width/2, height/3, 0, 0);
         ctx.fill();
         ctx.restore();
-    }
-    
-    // Helper function to wrap text
-    function wrapText(context, text, x, y, maxWidth, lineHeight) {
-        const words = text.split(' ');
-        let line = '';
-        let lines = [];
-        
-        for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            const metrics = context.measureText(testLine);
-            const testWidth = metrics.width;
-            
-            if (testWidth > maxWidth && n > 0) {
-                lines.push(line);
-                line = words[n] + ' ';
-            } else {
-                line = testLine;
-            }
-        }
-        
-        lines.push(line);
-        
-        // Calculate total height of text
-        const totalHeight = lines.length * lineHeight;
-        
-        // Calculate starting y position to center text block
-        const startY = y - (totalHeight / 2) + (lineHeight / 2);
-        
-        // Draw each line
-        for (let i = 0; i < lines.length; i++) {
-            context.fillText(lines[i], x, startY + (i * lineHeight));
-        }
-        
-        return lines;
     }
     
     // Function to download the quote card
@@ -685,22 +770,26 @@ document.addEventListener('DOMContentLoaded', function() {
     function openCardModal() {
         modal.classList.add('show');
         
-        // Ensure canvas is properly sized
-        // For high-resolution displays
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        
-        // Set canvas dimensions for proper rendering
-        canvas.width = rect.width * dpr;
-        canvas.height = canvas.width; // Keep it square
-        
-        // Scale the context
-        ctx.scale(dpr, dpr);
-        
-        // Generate the quote card
+        // Wait a bit for the modal to be visible before sizing the canvas
         setTimeout(() => {
+            // Reset any previous transformations
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            
+            // Get the container width for responsive sizing
+            const cardContainer = document.querySelector('.card-container');
+            const containerWidth = cardContainer.clientWidth;
+            
+            // Set canvas dimensions - use a fixed size for better quality
+            canvas.width = 1080;  // Standard square size for social media
+            canvas.height = 1080;
+            
+            // Set canvas CSS dimensions for display
+            canvas.style.width = `${containerWidth}px`;
+            canvas.style.height = `${containerWidth}px`;
+            
+            // Generate the quote card
             generateQuoteCard();
-        }, 100);
+        }, 300);
     }
     
     // Function to close modal
