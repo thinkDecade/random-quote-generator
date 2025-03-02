@@ -267,74 +267,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to handle social sharing
     function setupSocialSharing() {
         socialIcons.forEach(icon => {
-            icon.addEventListener('click', function(e) {
+            icon.addEventListener('click', async function(e) {
                 e.preventDefault();
                 
                 // Store which platform was clicked
                 const platform = this.querySelector('.fa-twitter') ? 'twitter' : 
-                                this.querySelector('.fa-facebook-f') ? 'facebook' : 
-                                this.querySelector('.fa-instagram') ? 'instagram' : null;
+                               this.querySelector('.fa-facebook-f') ? 'facebook' : 
+                               this.querySelector('.fa-instagram') ? 'instagram' : null;
+
+                // Set up canvas for quote card generation
+                canvas.width = 1080;
+                canvas.height = 1080;
                 
-                // Generate a quote card first
-                openCardModal();
+                // Generate the quote card immediately
+                generateQuoteCard();
                 
-                // Add a notification to guide the user
-                const notification = document.createElement('div');
-                notification.className = 'share-notification';
-                notification.innerHTML = `<p>Click the <strong>Share</strong> button below to share on ${platform}</p>`;
-                notification.style.cssText = `
-                    position: absolute;
-                    top: 10px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 10px 20px;
-                    border-radius: 20px;
-                    z-index: 10;
-                    text-align: center;
-                    animation: fadeIn 0.3s forwards;
-                `;
+                // Wait for the card to be generated
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
-                document.querySelector('.modal-content').appendChild(notification);
-                
-                // Remove notification after 5 seconds
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 5000);
-                
-                // Add a share button click handler specifically for this sharing action
-                const shareHandler = function() {
-                    const quote = currentQuote;
-                    
-                    if (platform === 'twitter') {
-                        shareToTwitter(quote);
-                    } else if (platform === 'facebook') {
-                        shareToFacebook(quote);
-                    } else if (platform === 'instagram') {
-                        shareToInstagram(quote);
-                    }
-                    
-                    // Remove this specific handler after use
-                    shareBtn.removeEventListener('click', shareHandler);
-                    
-                    // Remove notification if it still exists
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                };
-                
-                // Add the temporary handler
-                shareBtn.addEventListener('click', shareHandler);
+                // Share directly to the selected platform
+                if (platform === 'twitter') {
+                    shareToTwitter(currentQuote);
+                } else if (platform === 'facebook') {
+                    shareToFacebook(currentQuote);
+                } else if (platform === 'instagram') {
+                    shareToInstagram(currentQuote);
+                }
             });
         });
     }
     
     // Function to share to Twitter
     function shareToTwitter(quote) {
-        // First download the image
         canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -344,19 +308,16 @@ document.addEventListener('DOMContentLoaded', function() {
             link.click();
             document.body.removeChild(link);
             
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            
-            // Then open Twitter share dialog
-            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(quote)}&hashtags=inspiration,quotes`;
-            window.open(shareUrl, '_blank', 'width=600,height=400');
-            
-            alert('Image downloaded! You can attach it to your tweet for a more visual impact.');
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out this inspiring quote!\n\n' + quote)}&hashtags=inspiration,quotes`;
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+            }, 100);
         }, 'image/png', 1.0);
     }
     
     // Function to share to Facebook
     function shareToFacebook(quote) {
-        // First download the image
         canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -366,20 +327,16 @@ document.addEventListener('DOMContentLoaded', function() {
             link.click();
             document.body.removeChild(link);
             
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            
-            // Then open Facebook share dialog
-            const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(quote)}`;
-            window.open(shareUrl, '_blank', 'width=600,height=400');
-            
-            alert('Image downloaded! You can attach it to your Facebook post for a more visual impact.');
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent('Check out this inspiring quote!\n\n' + quote)}`;
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+            }, 100);
         }, 'image/png', 1.0);
     }
     
     // Function to share to Instagram
     function shareToInstagram(quote) {
-        // Since Instagram doesn't have a direct sharing API, we'll download the image
-        // and prompt the user to share it manually
         canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -389,10 +346,11 @@ document.addEventListener('DOMContentLoaded', function() {
             link.click();
             document.body.removeChild(link);
             
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            
-            alert('Image downloaded! You can now share it manually on Instagram.');
-        });
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                alert('Image downloaded! Since Instagram doesn\'t support direct sharing via web, please:\n1. Open Instagram\n2. Create a new post\n3. Select the downloaded image (inspire-me-quote.png)\n4. Add the quote as your caption');
+            }, 100);
+        }, 'image/png', 1.0);
     }
     
     // Function to generate quote card
