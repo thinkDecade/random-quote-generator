@@ -3,7 +3,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store DOM elements
     const quoteElement = document.getElementById('quote');
     const generateButton = document.getElementById('generate');
+    const createCardButton = document.getElementById('create-card');
     const socialIcons = document.querySelectorAll('.social-icon');
+    const modal = document.getElementById('card-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const canvas = document.getElementById('quote-canvas');
+    const ctx = canvas.getContext('2d');
+    const styleBtns = document.querySelectorAll('.style-btn');
+    const downloadBtn = document.getElementById('download-card');
+    const shareBtn = document.getElementById('share-card');
+    
+    // Current card style
+    let currentStyle = 'gradient';
     
     // Array of quotes
     const quotes = [
@@ -285,8 +296,397 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Add click event listener to the generate button
+    // Function to generate quote card
+    function generateQuoteCard() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Get quote text
+        const quote = currentQuote || "Click the button below to discover wisdom that might change your perspective today.";
+        
+        // Split quote and author
+        let quoteText = quote;
+        let authorText = "";
+        
+        if (quote.includes(" - ")) {
+            const parts = quote.split(" - ");
+            quoteText = parts[0];
+            authorText = "- " + parts[1];
+        }
+        
+        // Apply different styles based on selection
+        switch(currentStyle) {
+            case 'gradient':
+                drawGradientStyle(quoteText, authorText);
+                break;
+            case 'minimal':
+                drawMinimalStyle(quoteText, authorText);
+                break;
+            case 'nature':
+                drawNatureStyle(quoteText, authorText);
+                break;
+            case 'dark':
+                drawDarkStyle(quoteText, authorText);
+                break;
+            default:
+                drawGradientStyle(quoteText, authorText);
+        }
+    }
+    
+    // Gradient style card
+    function drawGradientStyle(quoteText, authorText) {
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, '#ee7752');
+        gradient.addColorStop(0.3, '#e73c7e');
+        gradient.addColorStop(0.6, '#23a6d5');
+        gradient.addColorStop(1, '#23d5ab');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add overlay for better text readability
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add quote marks
+        ctx.font = 'bold 120px Playfair Display, serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText('"', 100, 100);
+        
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('"', canvas.width - 100, canvas.height - 100);
+        
+        // Draw quote text
+        ctx.font = 'italic 60px Playfair Display, serif';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Word wrap the quote text
+        const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 200, 80);
+        
+        // Draw author text
+        if (authorText) {
+            ctx.font = '40px Montserrat, sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+        }
+        
+        // Add logo/branding
+        ctx.font = '30px Montserrat, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Inspire Me', 100, canvas.height - 50);
+    }
+    
+    // Minimal style card
+    function drawMinimalStyle(quoteText, authorText) {
+        // White background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add subtle pattern
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+        for (let i = 0; i < canvas.width; i += 20) {
+            ctx.fillRect(i, 0, 1, canvas.height);
+        }
+        for (let i = 0; i < canvas.height; i += 20) {
+            ctx.fillRect(0, i, canvas.width, 1);
+        }
+        
+        // Add accent color bar
+        ctx.fillStyle = '#64ffda';
+        ctx.fillRect(0, 0, 20, canvas.height);
+        
+        // Draw quote text
+        ctx.font = 'italic 60px Playfair Display, serif';
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Word wrap the quote text
+        const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 300, 80);
+        
+        // Draw author text
+        if (authorText) {
+            ctx.font = '40px Montserrat, sans-serif';
+            ctx.fillStyle = '#64ffda';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+        }
+        
+        // Add logo/branding
+        ctx.font = '30px Montserrat, sans-serif';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Inspire Me', 100, canvas.height - 50);
+    }
+    
+    // Nature style card
+    function drawNatureStyle(quoteText, authorText) {
+        // Draw background image (placeholder - in production would use actual image)
+        const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGradient.addColorStop(0, '#134e5e');
+        bgGradient.addColorStop(1, '#71b280');
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add texture overlay
+        ctx.globalAlpha = 0.1;
+        for (let i = 0; i < canvas.width; i += 4) {
+            for (let j = 0; j < canvas.height; j += 4) {
+                if (Math.random() > 0.5) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(i, j, 2, 2);
+                }
+            }
+        }
+        ctx.globalAlpha = 1.0;
+        
+        // Add dark overlay for better text readability
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw decorative elements (leaves)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        drawLeaf(100, 100, 80, 40);
+        drawLeaf(canvas.width - 100, canvas.height - 100, 80, 40);
+        drawLeaf(canvas.width - 150, 150, 60, 30);
+        drawLeaf(150, canvas.height - 150, 60, 30);
+        
+        // Draw quote text
+        ctx.font = 'italic 60px Playfair Display, serif';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Word wrap the quote text
+        const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 300, 80);
+        
+        // Draw author text
+        if (authorText) {
+            ctx.font = '40px Montserrat, sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+        }
+        
+        // Add logo/branding
+        ctx.font = '30px Montserrat, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Inspire Me', 100, canvas.height - 50);
+    }
+    
+    // Dark style card
+    function drawDarkStyle(quoteText, authorText) {
+        // Black background
+        ctx.fillStyle = '#121212';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add subtle texture
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        for (let i = 0; i < 200; i++) {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const radius = Math.random() * 2;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Add glowing accent
+        const glowGradient = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 0,
+            canvas.width / 2, canvas.height / 2, canvas.width / 2
+        );
+        glowGradient.addColorStop(0, 'rgba(100, 255, 218, 0.2)');
+        glowGradient.addColorStop(1, 'rgba(100, 255, 218, 0)');
+        ctx.fillStyle = glowGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw quote text
+        ctx.font = 'italic 60px Playfair Display, serif';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Word wrap the quote text
+        const wrappedText = wrapText(ctx, quoteText, canvas.width / 2, canvas.height / 2, canvas.width - 300, 80);
+        
+        // Draw author text
+        if (authorText) {
+            ctx.font = '40px Montserrat, sans-serif';
+            ctx.fillStyle = '#64ffda';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(authorText, canvas.width - 100, canvas.height - 150);
+        }
+        
+        // Add logo/branding
+        ctx.font = '30px Montserrat, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Inspire Me', 100, canvas.height - 50);
+    }
+    
+    // Helper function to draw a leaf shape
+    function drawLeaf(x, y, width, height) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(width/3, height/3, width/2, 0, width, 0);
+        ctx.bezierCurveTo(width/2, height/2, width/3, height, 0, height);
+        ctx.bezierCurveTo(-width/3, height/2, -width/2, height/3, 0, 0);
+        ctx.fill();
+        ctx.restore();
+    }
+    
+    // Helper function to wrap text
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let lines = [];
+        
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = context.measureText(testLine);
+            const testWidth = metrics.width;
+            
+            if (testWidth > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        
+        lines.push(line);
+        
+        // Calculate total height of text
+        const totalHeight = lines.length * lineHeight;
+        
+        // Calculate starting y position to center text block
+        const startY = y - (totalHeight / 2) + (lineHeight / 2);
+        
+        // Draw each line
+        for (let i = 0; i < lines.length; i++) {
+            context.fillText(lines[i], x, startY + (i * lineHeight));
+        }
+        
+        return lines;
+    }
+    
+    // Function to download the quote card
+    function downloadQuoteCard() {
+        const link = document.createElement('a');
+        link.download = 'inspire-me-quote.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+    
+    // Function to share the quote card
+    function shareQuoteCard() {
+        // Convert canvas to blob
+        canvas.toBlob(function(blob) {
+            // Check if Web Share API is available
+            if (navigator.share && navigator.canShare) {
+                const filesArray = [new File([blob], 'inspire-me-quote.png', { type: 'image/png' })];
+                
+                if (navigator.canShare({ files: filesArray })) {
+                    navigator.share({
+                        files: filesArray,
+                        title: 'Inspirational Quote',
+                        text: currentQuote
+                    }).catch(error => {
+                        console.error('Error sharing:', error);
+                        fallbackShare(blob);
+                    });
+                } else {
+                    fallbackShare(blob);
+                }
+            } else {
+                fallbackShare(blob);
+            }
+        });
+    }
+    
+    // Fallback sharing method
+    function fallbackShare(blob) {
+        // Create a temporary URL for the blob
+        const url = URL.createObjectURL(blob);
+        
+        // Create a temporary link to download the image
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'inspire-me-quote.png';
+        
+        // Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
+        // Inform the user
+        alert('Image downloaded! You can now share it manually on your social media platforms.');
+    }
+    
+    // Function to open modal and generate quote card
+    function openCardModal() {
+        modal.classList.add('show');
+        generateQuoteCard();
+    }
+    
+    // Function to close modal
+    function closeCardModal() {
+        modal.classList.remove('show');
+    }
+    
+    // Event listeners
     generateButton.addEventListener('click', updateQuote);
+    createCardButton.addEventListener('click', openCardModal);
+    closeModal.addEventListener('click', closeCardModal);
+    downloadBtn.addEventListener('click', downloadQuoteCard);
+    shareBtn.addEventListener('click', shareQuoteCard);
+    
+    // Style button event listeners
+    styleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            styleBtns.forEach(b => b.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Update current style
+            currentStyle = this.getAttribute('data-style');
+            
+            // Regenerate quote card
+            generateQuoteCard();
+        });
+    });
+    
+    // Close modal when clicking outside of content
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeCardModal();
+        }
+    });
     
     // Add button animation
     generateButton.addEventListener('mousedown', function() {

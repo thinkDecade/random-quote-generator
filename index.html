@@ -29,10 +29,17 @@
                 <i class="quote-icon fas fa-quote-right"></i>
             </div>
             
-            <button id="generate" aria-label="Generate new quote">
-                <span class="button-text">New Inspiration</span>
-                <i class="fas fa-lightbulb"></i>
-            </button>
+            <div class="button-group">
+                <button id="generate" aria-label="Generate new quote">
+                    <span class="button-text">New Inspiration</span>
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+                
+                <button id="create-card" aria-label="Create shareable quote card">
+                    <span class="button-text">Create Card</span>
+                    <i class="fas fa-image"></i>
+                </button>
+            </div>
         </main>
         
         <footer>
@@ -43,6 +50,39 @@
                 <a href="#" class="social-icon" aria-label="Share on Instagram"><i class="fab fa-instagram"></i></a>
             </div>
         </footer>
+    </div>
+    
+    <!-- Quote Card Modal -->
+    <div id="card-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Your Quote Card</h2>
+            
+            <div class="card-container">
+                <canvas id="quote-canvas" width="1080" height="1080"></canvas>
+            </div>
+            
+            <div class="card-options">
+                <div class="style-options">
+                    <h3>Card Style</h3>
+                    <div class="style-selector">
+                        <button class="style-btn active" data-style="gradient">Gradient</button>
+                        <button class="style-btn" data-style="minimal">Minimal</button>
+                        <button class="style-btn" data-style="nature">Nature</button>
+                        <button class="style-btn" data-style="dark">Dark</button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="download-card">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button id="share-card">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
